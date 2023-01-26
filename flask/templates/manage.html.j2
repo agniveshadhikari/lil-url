@@ -1,0 +1,12 @@
+<table>
+  <tr>
+    <th>Slug</th>
+    <th>Target</th>
+  </tr>
+{% for redirect in redirects %}
+    <tr>
+        <td>{{ redirect[0] }}</td>
+        <td><a href="{{ redirect[1] }}">{{ redirect[1] }}</a></td>
+    </tr>
+{% endfor %}
+</table>
