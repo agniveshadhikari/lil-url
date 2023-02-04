@@ -1,10 +1,15 @@
 from flask import Flask, request, render_template, redirect as redirect_response, Response
 from json import dumps as serialize
-import  psycopg2
 import os
 from datetime import datetime
 from time import sleep
 from pprint import pformat
+from secrets import token_urlsafe as token_b64
+from datetime import datetime, timedelta
+
+from db import DatabaseService, PoolConfig, ConnectionConfig
+
+
 def now():
     return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
@@ -17,89 +22,71 @@ DB_TABLE = os.environ["DATABASE_TABLE"]
 DB_SERVER = os.environ["DATABASE_HOST"]
 ACCESS_KEY = os.environ["ACCESS_KEY"]
 
+COOKIE_PREFIX = BASE_URL.replace(".", "_")
+SESSION_COOKIE_KEY = COOKIE_PREFIX+"__session"
+
+db = DatabaseService(
+    poolConfig=PoolConfig(2, 3),
+    connectionConfig=ConnectionConfig(
+        db=DB_DATABASE,
+        user=DB_USERNAME,
+        password=DB_PASSWORD,
+        host=DB_SERVER,
+    ))
 
 app = Flask(__name__)
 
-conn = None
 
-def get_cursor():
-    if conn is None or conn.closed:
-        conn = psycopg2.connect(
-            dbname=DB_DATABASE,
-            user=DB_USERNAME,
-            password=DB_PASSWORD,
-            host=DB_SERVER,
-            sslmode="require")
-
-        conn.autocommit = True
-    
-    return conn.cursor()
-
-
-
-
-@app.route("/")
+@app.route("/", methods=["get"])
 def index():
+    session_cookie = request.cookies.get(SESSION_COOKIE_KEY)
+    if session_cookie is None:
+        return redirect_response("/login")
+    return "Welcome to /"
 
-    # If not logged in
-    if False:
-        return redirect("/login")
+
+@app.route("/login", methods=["get"])
+def login_page():
+    return render_template("authenticate.html.j2", method="post", action="/login", failed=False)
 
 
-    return render_template("home.html.j2", method="post", action="/login")
+@app.route("/login", methods=["post"])
+def login_request():
+    username, password = request.form["username"], request.form["password"]
+    user_id = db.users.authenticate(username, password)
 
-@app.route("/login" methods="get")
-def get_login():
-    if request.form.get('accessKey') != ACCESS_KEY:
-        return render_template("authenticate.html.j2", method="post", action="/login")
+    if user_id is None:
+        return render_template("authenticate.html.j2", method="post", action="/login", failed=True)
 
-@app.route("/create", methods=["get"])
-def create_get():
-    return render_template("create.html")
+    # Auth success
+    persist_session = request.form.get("persist_session", False)
 
-@app.route("/create", methods=["post"])
-def create_post():
-    if request.form['accessKey'] != ACCESS_KEY:
-        return Response("Incorrect access key", 401)
-
-    result = db_insert(request.form['slug'], request.form['target'])
-    if result:
-        return render_template("created.html.j2", url=BASE_URL+"/"+request.form["slug"])
+    if persist_session:
+        expiry = datetime.utcnow() + timedelta(days=30)
     else:
-        return "Oops!"
+        expiry = datetime.utcnow() + timedelta(days=1)
 
-@app.route("/manage", methods=['get', 'post'])
-def manage():
-    if request.form.get('accessKey') != ACCESS_KEY:
-        return render_template("authenticate.html.j2", method="post", action="/manage")
-    
-    return render_template("manage.html.j2", redirects=db_list())
+    session_token = token_b64(64)
 
-@app.route("/<string:slug>", methods=["get"])
-def redirect(slug):
-    target = db_lookup(slug)
+    db.sessions.create(token=session_token,
+                       user_id=user_id, expire_time=expiry)
+
+    next = request.args.get("next", "/")
+    response = redirect_response(next)
+    response.set_cookie(SESSION_COOKIE_KEY,
+                       session_token, expires=expiry)
+    return response
+
+
+@app.route("/<path:path>", methods=["get"])
+def redirect(path):
+    print("redirect endpoint hit")
+    try:
+        target = db.redirects.get_active_target(path)
+    except Exception as e:
+        print("exception", e)
+        raise
+        return redirect_response("https://" + BASE_URL)
     if target is None:
         return "Oops!"
     return redirect_response(target)
-
-def db_insert(slug, target):
-    curs = get_cursor()
-    try:
-        curs.execute("insert into redirect values(%s, %s)", (slug, target))
-        return True
-    except:
-        return False
-
-def db_lookup(slug):
-    curs = get_cursor()
-    curs.execute("select target from redirect where slug=%s", (slug,))
-    result = curs.fetchone()
-    if result is None:
-        return None
-    target, = result
-    return target
-    
-def db_list():
-    curs = get_cursor()
-    curs.execute("select * from redirect")
-    return curs.fetchall()

@@ -1,9 +1,25 @@
 from psycopg2.pool import ThreadedConnectionPool
+from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 from .redirect_service import RedirectService
+from .connection_manager import ConnectionManager
 
+@dataclass
+class PoolConfig:
+    min_conns: int
+    max_conns: int
+
+
+@dataclass
+class ConnectionConfig:
+    db: str
+    user: str
+    password: str
+    host: str
 
 class DatabaseService:
+
     def __init__(self, poolConfig, connectionConfig) -> None:
         self.pool = ThreadedConnectionPool(
             minconn=poolConfig.min_conns,
@@ -15,6 +31,10 @@ class DatabaseService:
             sslmode="require"
         )
 
-        self.redirects = RedirectService(self.pool.getconn, self.pool.putconn)
+
+        self.redirects = RedirectService(self._get_connection_manager('redirects'))
         # self.users = UserService()
         # self.sessions = SessionService()
+
+    def _get_connection_manager(self, name):
+        return ConnectionManager(name, self.pool.getconn, self.pool.putconn)
