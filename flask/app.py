@@ -18,17 +18,22 @@ ACCESS_KEY = os.environ["ACCESS_KEY"]
 COOKIE_PREFIX = BASE_URL.replace(".", "_")
 SESSION_COOKIE_KEY = COOKIE_PREFIX+"__session"
 
-
-db = DatabaseService(
-    poolConfig=PoolConfig(3, 5),
-    connectionConfig=ConnectionConfig(
-        db=DB_DATABASE,
-        user=DB_USERNAME,
-        password=DB_PASSWORD,
-        host=DB_SERVER,
-    ))
+db = None
 
 app = Flask(__name__)
+
+
+@app.before_first_request
+def init_db():
+    global db
+    db = DatabaseService(
+        poolConfig=PoolConfig(3, 5),
+        connectionConfig=ConnectionConfig(
+            db=DB_DATABASE,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            host=DB_SERVER,
+        ))
 
 
 @app.before_request
