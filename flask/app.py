@@ -18,7 +18,7 @@ ACCESS_KEY = os.environ["ACCESS_KEY"]
 COOKIE_PREFIX = BASE_URL.replace(".", "_")
 SESSION_COOKIE_KEY = COOKIE_PREFIX+"__session"
 
-db = None
+db: DatabaseService = None
 
 app = Flask(__name__)
 
@@ -97,6 +97,13 @@ def delete():
 
 @app.route("/login", methods=["get"])
 def login_page():
+    token = request.args.get("token")
+    if token:
+        next = request.args.get("next", "/reset-password")
+
+        response = redirect_response(next)
+        response.set_cookie(SESSION_COOKIE_KEY, token)
+        return response
     return render_template("authenticate.html.j2", method="post", action="/login", failed=False)
 
 
@@ -127,6 +134,42 @@ def login_request():
                         session_token, expires=expiry)
     return response
 
+
+@app.route("/create-user", methods=["get"])
+def create_user_page():
+    return render_template("create_user.html.j2")
+
+
+@app.route("/create-user", methods=["post"])
+def create_user_request():
+    username = request.form.get("username")
+    id = db.users.create(username)
+    token = token_b64(64)
+    db.sessions.create(
+        token=token,
+        user_id=id,
+        expire_time=datetime.utcnow() + timedelta(days=1)
+    )
+
+    return f"{request.host_url}login?token={token}"
+
+
+@app.route("/reset-password", methods=["get"])
+def reset_password_page():
+    return render_template("reset_password.html.j2", username=request_context.user.username)
+
+
+@app.route("/reset-password", methods=["post"])
+def reset_password_request():
+    password = request.form.get("password")
+    if password is None:
+        return "Password invalid"
+    db.users.update_password(
+        user_id=request_context.user.id,
+        password=password)
+    res = redirect_response("/login")
+    res.delete_cookie(SESSION_COOKIE_KEY)
+    return res
 
 @app.route("/<path:path>", methods=["get"])
 def redirect(path):
