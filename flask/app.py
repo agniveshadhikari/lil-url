@@ -1,17 +1,10 @@
-from flask import Flask, request, render_template, redirect as redirect_response, Response
-from json import dumps as serialize
+from flask import Flask, request, render_template, redirect as redirect_response, Response, g as request_context
 import os
 from datetime import datetime
-from time import sleep
-from pprint import pformat
 from secrets import token_urlsafe as token_b64
 from datetime import datetime, timedelta
 
 from db import DatabaseService, PoolConfig, ConnectionConfig
-
-
-def now():
-    return datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
 
 BASE_URL = os.environ["BASE_URL"]
@@ -25,8 +18,9 @@ ACCESS_KEY = os.environ["ACCESS_KEY"]
 COOKIE_PREFIX = BASE_URL.replace(".", "_")
 SESSION_COOKIE_KEY = COOKIE_PREFIX+"__session"
 
+
 db = DatabaseService(
-    poolConfig=PoolConfig(2, 3),
+    poolConfig=PoolConfig(3, 5),
     connectionConfig=ConnectionConfig(
         db=DB_DATABASE,
         user=DB_USERNAME,
@@ -37,12 +31,63 @@ db = DatabaseService(
 app = Flask(__name__)
 
 
+@app.before_request
+def populate_request_context():
+    session_token = request.cookies.get(SESSION_COOKIE_KEY)
+    user = db.sessions.get_user(session_token)
+    if user is None and request.path in ["/"]:
+        return redirect_response(f"/login?next={request.path}")
+
+    request_context.user = user
+
+
+@app.route("/favicon.ico")
+def ignore():
+    return ""
+
+
+def render_index(user=None):
+    if user is None:
+        user = request_context.user
+
+    redirects = db.redirects.get_all(user_id=user.id)
+
+    return render_template("manage.html.j2", user=user, redirects=redirects, base_url=BASE_URL)
+
+
 @app.route("/", methods=["get"])
 def index():
-    session_cookie = request.cookies.get(SESSION_COOKIE_KEY)
-    if session_cookie is None:
-        return redirect_response("/login")
-    return "Welcome to /"
+    return render_index()
+
+
+@app.route("/", methods=["post"])
+def action():
+    action = request.form.get("action")
+    if action == "create":
+        return create()
+    elif action == "delete":
+        return delete()
+    else:
+        return Response(f"Invalid action {action}", 400)
+
+
+def create():
+    path, target = request.form.get("path"), request.form.get("target")
+    user = request_context.user
+
+    db.redirects.create(path, target, user.id)
+
+    return render_index()
+
+
+def delete():
+    path = request.form.get("path")
+    if path is None:
+        return Response("Can't delete path None", 400)
+
+    db.redirects.delete(path)
+
+    return render_index()
 
 
 @app.route("/login", methods=["get"])
@@ -74,7 +119,7 @@ def login_request():
     next = request.args.get("next", "/")
     response = redirect_response(next)
     response.set_cookie(SESSION_COOKIE_KEY,
-                       session_token, expires=expiry)
+                        session_token, expires=expiry)
     return response
 
 
@@ -85,7 +130,6 @@ def redirect(path):
         target = db.redirects.get_active_target(path)
     except Exception as e:
         print("exception", e)
-        raise
         return redirect_response("https://" + BASE_URL)
     if target is None:
         return "Oops!"

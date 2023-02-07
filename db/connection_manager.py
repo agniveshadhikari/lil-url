@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from psycopg2.extensions import connection
-
+from contextlib import contextmanager
 
 class AbstractConnectionManager(ABC):
 
@@ -29,4 +29,15 @@ class ConnectionManager(AbstractConnectionManager):
         return conn
 
     def put_connection(self, connection: connection) -> None:
-        print(f"put_connection on ConnectionManager({self.name}): {conn}")
+        print(
+            f"put_connection on ConnectionManager({self.name}): {connection}")
+        self._put_connection(connection)
+
+    @contextmanager
+    def cursor(self):
+        try:
+            conn = self.get_connection()
+            with conn:
+                yield conn.cursor()
+        finally:
+            self.put_connection(conn)

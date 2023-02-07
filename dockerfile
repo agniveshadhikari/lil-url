@@ -1,8 +1,8 @@
-FROM tiangolo/uwsgi-nginx-flask:python3.8
+FROM python:3.11.1-bullseye
 
-COPY ./requirements.txt /app/requirements.txt
+COPY . /app/
+WORKDIR /app
 
-RUN apt install libpq-dev
-RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
+RUN pip install -r requirements.txt
 
-COPY ./app /app
+ENTRYPOINT ["uwsgi", "uwsgi/config.ini"]

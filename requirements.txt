@@ -7,3 +7,5 @@ MarkupSafe==2.1.1
 psycopg2==2.9.5
 Werkzeug==2.2.2
 zipp==3.11.0
+uWSGI==2.0.21
+bcrypt==4.0.1

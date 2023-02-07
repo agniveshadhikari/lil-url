@@ -29,5 +29,5 @@ CREATE TABLE session (
     token VARCHAR(1023) NOT NULL UNIQUE,
     user_id int REFERENCES "user"(id),
     create_time TIMESTAMP DEFAULT current_timestamp,
-    expire_time TIMESTAMP NOT NULL,
-)
+    expire_time TIMESTAMP NOT NULL
+);

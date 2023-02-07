@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
 from .redirect_service import RedirectService
+from .user_service import UserService
+from .session_service import SessionService
 from .connection_manager import ConnectionManager
 
 @dataclass
@@ -33,8 +35,9 @@ class DatabaseService:
 
 
         self.redirects = RedirectService(self._get_connection_manager('redirects'))
-        # self.users = UserService()
-        # self.sessions = SessionService()
+        self.users = UserService(self._get_connection_manager('users'))
+        self.sessions = SessionService(
+            self._get_connection_manager('sessions'))
 
     def _get_connection_manager(self, name):
         return ConnectionManager(name, self.pool.getconn, self.pool.putconn)
