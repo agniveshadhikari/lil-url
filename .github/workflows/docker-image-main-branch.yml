@@ -23,4 +23,4 @@ jobs:
         password: ${{ secrets.DOCKERHUB_PAT }}
     
     - name: Push images to Docker Hub
-      run: docker push agniveshadhikari/slinky --all-tags
+      run: docker push -q agniveshadhikari/slinky --all-tags
