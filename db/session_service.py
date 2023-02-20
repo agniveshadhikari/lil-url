@@ -1,14 +1,5 @@
 from .connection_manager import AbstractConnectionManager
-from dataclasses import dataclass
-
-
-@dataclass
-class User:
-    id: int
-    username: str
-    first_name: str
-    middle_name: str
-    last_name: str
+from .model import User
 
 
 class SessionService:
@@ -30,7 +21,7 @@ class SessionService:
         with self.connection_manager.cursor() as curs:
             curs.execute(
                 """
-                select "user".id, username, first_name, middle_name, last_name
+                select "user".id, username, first_name, middle_name, last_name, access_level, last_login_time
                 from session join "user" on "user".id = session.user_id
                 where token=%s
                     and expire_time >= CURRENT_TIMESTAMP
@@ -41,5 +32,11 @@ class SessionService:
             if result is None:
                 return None
 
-            id, username, first_name, middle_name, last_name = result
-            return User(id, username, first_name, middle_name, last_name)
+            id, username, first_name, middle_name, last_name, access_level, last_login_time = result
+            return User(id,
+                        username=username,
+                        first_name=first_name,
+                        middle_name=middle_name,
+                        last_name=last_name,
+                        access_level=access_level,
+                        last_login_time=last_login_time)

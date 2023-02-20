@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %} goto: agnive.sh {% endblock %} </title>
+
+  <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      position: relative;
+
+      font: inherit;
+      font-size: inherit;
+    }
+
+    body {
+      font-family: "Roboto", "Helvetica Neue", Helvetica, Arial;
+      font-size: 16px;
+    }
+
+    input[type=text] {
+      border: 0;
+      outline: 0;
+      border-bottom: 1px solid gray;
+    }
+
+    input[type=submit] {
+      border: 0;
+      border-radius: 0.25em;
+      outline: 0;
+      padding: 0.5em 2em;
+      margin: 0.5em 2em;
+      color: white;
+      background-color: rgb(36, 106, 236);
+    }
+
+    input#create-path {
+      min-width: 100px;
+    }
+
+    input#create-target {
+      min-width: 250px;
+    }
+
+    input#create-submit {
+      margin-top: 1em;
+    }
+
+    .page {
+      min-height: 100vh;
+    }
+
+    .creation-section {
+      margin-top: 200px;
+    }
+
+    .manage-section {
+      margin-top: 200px;
+    }
+
+    .arrow {
+      margin: 0 2em;
+    }
+
+    .delete {
+      margin: 0 2em;
+    }
+
+    .copyright {
+      font-size: 6px;
+    }
+
+    .f--row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .f--col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .f--ac {
+      align-items: center;
+    }
+
+    .f--jsb {
+      justify-content: space-between;
+    }
+
+    .f--jsa {
+      justify-content: space-around;
+    }
+
+    .icon-button {
+      border: 0;
+      outline: 0;
+      padding: 0.5em;
+      background: none;
+    }
+
+    .hover-red:hover {
+      transition: ease-in-out 0.3s;
+      color: red;
+    }
+
+    .hover-yellow:hover {
+      color: rgb(191, 191, 0)
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="content">
+    {% block content required %}
+
+    {% endblock content %}
+  </div>
+
+  <div class="footer">
+    {% block footer %}
+    <div class="f--col f--ac">
+      <div class="copyright">Copyright agnive.sh 2023</div>
+    </div>
+    {% endblock footer %}
+  </div>
+
+</body>
+
+</html>

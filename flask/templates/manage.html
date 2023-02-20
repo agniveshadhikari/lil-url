@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="page">
+  <div class="creation-section">
+    <form method="post" action="http://127.0.0.1:5000/" class="f--col f--ac">
+      <div>
+        <span>agnive.sh/</span><input id="create-path" type="text" name="path" placeholder="example">
+        <i class="fa-solid fa-arrow-right arrow"></i>
+        <input id="create-target" type="text" name="target" placeholder="https://www.example.com">
+      </div>
+      <input type="hidden" name="action" value="create">
+      <input id="create-submit" type="submit" value="Create" class="">
+    </form>
+  </div>
+
+  <div class="manage-section f--col f--ac">
+    <table>
+      {% for redirect in redirects %}
+      <tr>
+        <td>{{ base_url }}/{{ redirect[0] }}</td>
+        <td><i class="fa-solid fa-arrow-right arrow"></i></td>
+        <td><a href="{{ redirect[1] }}">{{ redirect[1] }}</a></td>
+        <td>
+          <form method="post" action="/">
+            <input type="hidden" name="path" value="{{ redirect[0] }}">
+            <input type="hidden" name="action" value="delete">
+            <button class="icon-button hover-red delete">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+</div>
+
+{% endblock content %}

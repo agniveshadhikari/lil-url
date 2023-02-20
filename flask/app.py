@@ -1,10 +1,17 @@
-from flask import Flask, request, render_template, redirect as redirect_response, Response, g as request_context
+from flask import (
+    Flask,
+    request,
+    render_template,
+    redirect as redirect_response,
+    Response,
+    g as request_context)
 import os
 from datetime import datetime
 from secrets import token_urlsafe as token_b64
 from datetime import datetime, timedelta
-
 from db import DatabaseService, PoolConfig, ConnectionConfig
+
+from decorators import check_access
 
 
 BASE_URL = os.environ["BASE_URL"]
@@ -57,7 +64,7 @@ def render_index(user=None):
 
     redirects = db.redirects.get_all(user_id=user.id)
 
-    return render_template("manage.html.j2", user=user, redirects=redirects, base_url=BASE_URL)
+    return render_template("manage.html", user=user, redirects=redirects, base_url=BASE_URL)
 
 
 @app.route("/", methods=["get"])
@@ -104,7 +111,7 @@ def login_page():
         response = redirect_response(next)
         response.set_cookie(SESSION_COOKIE_KEY, token)
         return response
-    return render_template("authenticate.html.j2", method="post", action="/login", failed=False)
+    return render_template("authenticate.html", method="post", action="/login", failed=False)
 
 
 @app.route("/login", methods=["post"])
@@ -113,7 +120,7 @@ def login_request():
     user_id = db.users.authenticate(username, password)
 
     if user_id is None:
-        return render_template("authenticate.html.j2", method="post", action="/login", failed=True)
+        return render_template("authenticate.html", method="post", action="/login", failed=True)
 
     # Auth success
     persist_session = request.form.get("persist_session", False)
@@ -136,11 +143,13 @@ def login_request():
 
 
 @app.route("/create-user", methods=["get"])
+@ check_access('admin')
 def create_user_page():
-    return render_template("create_user.html.j2")
+    return render_template("create_user.html")
 
 
 @app.route("/create-user", methods=["post"])
+@ check_access('admin')
 def create_user_request():
     username = request.form.get("username")
     id = db.users.create(username)
@@ -156,7 +165,7 @@ def create_user_request():
 
 @app.route("/reset-password", methods=["get"])
 def reset_password_page():
-    return render_template("reset_password.html.j2", username=request_context.user.username)
+    return render_template("reset_password.html", username=request_context.user.username)
 
 
 @app.route("/reset-password", methods=["post"])
@@ -170,6 +179,7 @@ def reset_password_request():
     res = redirect_response("/login")
     res.delete_cookie(SESSION_COOKIE_KEY)
     return res
+
 
 @app.route("/<path:path>", methods=["get"])
 def redirect(path):

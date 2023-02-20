@@ -1,7 +1,7 @@
 CREATE TABLE "user" (
     id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     username VARCHAR(31) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     first_name VARCHAR(31),
     middle_name VARCHAR(31),
     last_name VARCHAR(31),
