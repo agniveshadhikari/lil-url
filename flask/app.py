@@ -20,7 +20,6 @@ DB_PASSWORD = os.environ["DATABASE_PASSWORD"]
 DB_DATABASE = os.environ["DATABASE_DB"]
 DB_TABLE = os.environ["DATABASE_TABLE"]
 DB_SERVER = os.environ["DATABASE_HOST"]
-ACCESS_KEY = os.environ["ACCESS_KEY"]
 
 COOKIE_PREFIX = BASE_URL.replace(".", "_")
 SESSION_COOKIE_KEY = COOKIE_PREFIX+"__session"
