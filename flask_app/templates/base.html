@@ -6,9 +6,9 @@
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %} goto: agnive.sh {% endblock %} </title>
+  <title>{% block title %} Home | goto: agnive.sh {% endblock %} </title>
 
-  <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
+  <link href="//fonts.googleapis.com/css?family=Roboto:200,300,400,500,700" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
 
   <style>
@@ -27,7 +27,8 @@
       font-size: 16px;
     }
 
-    input[type=text] {
+    input[type=text],
+    input[type=password] {
       border: 0;
       outline: 0;
       border-bottom: 1px solid gray;
@@ -115,6 +116,12 @@
 
     .hover-yellow:hover {
       color: rgb(191, 191, 0)
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 200;
+      margin-bottom: 2em;
     }
 
   </style>

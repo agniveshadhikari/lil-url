@@ -1,7 +1,16 @@
-<h1>Login</h1><br>
+{% extends 'base.html' %}
 
-<form method="{{ method }}">
+{% block title %} Login | goto: agnive.sh {% endblock title %}
+
+{% block content %}
+
+<div class="page f--col f--ac">
+  <h1>Login</h1><br>
+  <form method="{{ method }}">
     <label for="username">Username:<input type="text" name="username"></label><br>
     <label for="password">Password:<input type="password" name="password"></label><br>
     <input type="submit" value="Submit">
-</form>
+  </form>
+</div>
+
+{% endblock content %}
