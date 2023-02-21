@@ -113,7 +113,7 @@ def login_page():
         response = redirect_response(next)
         response.set_cookie(SESSION_COOKIE_KEY, token)
         return response
-    return render_template("authenticate.html", method="post", action="/login", failed=False)
+    return render_template("authenticate.html", method="post", failed=False)
 
 
 @app.route("/login", methods=["post"])
@@ -122,7 +122,7 @@ def login_request():
     user_id = db.users.authenticate(username, password)
 
     if user_id is None:
-        return render_template("authenticate.html", method="post", action="/login", failed=True)
+        return render_template("authenticate.html", method="post", failed=True)
 
     # Auth success
     persist_session = request.form.get("persist_session", False)
