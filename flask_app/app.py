@@ -11,7 +11,7 @@ from secrets import token_urlsafe as token_b64
 from datetime import datetime, timedelta
 from db import DatabaseService, PoolConfig, ConnectionConfig
 
-from decorators import check_access
+from .decorators import check_access
 
 
 BASE_URL = os.environ["BASE_URL"]
@@ -47,7 +47,10 @@ def populate_request_context():
     session_token = request.cookies.get(SESSION_COOKIE_KEY)
     user = db.sessions.get_user(session_token)
     if user is None and request.path in ["/"]:
-        return redirect_response(f"/login?next={request.path}")
+        if request.path not in ["/", ""]:
+            return redirect_response(f"/login?next={request.path}")
+        else:
+            return redirect_response("/login")
 
     request_context.user = user
 
