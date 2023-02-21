@@ -13,13 +13,13 @@ jobs:
     steps:
     - name: "Git: Checkout"
       uses: actions/checkout@v3
-      
+
     - name: "Git: Get short SHA"
       id: git-short-sha
       run: |
         calculatedSha=$(git rev-parse --short ${{ github.sha }})
         echo git-short-sha=$calculatedSha >> $GITHUB_OUTPUT
-        
+
     - name: "Docker: Set up Buildx"
       uses: docker/setup-buildx-action@v2
 
@@ -28,7 +28,7 @@ jobs:
       with:
         username: agniveshadhikari
         password: ${{ secrets.DOCKERHUB_PAT }}
-    
+
     - name: "Docker: Build and Push"
       uses: docker/build-push-action@v4
       with:
@@ -38,4 +38,6 @@ jobs:
         tags: |
           agniveshadhikari/slinky:sha-${{ steps.git-short-sha.outputs.git-short-sha }}
           agniveshadhikari/slinky:main-latest
-      
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
